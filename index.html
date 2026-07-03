@@ -83,6 +83,11 @@ h2{font-size:1.05rem;font-weight:700;margin-bottom:10px}
 .setinfo{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:12px}
 .reps-big{font-size:3.6rem;font-weight:800;text-align:center;margin:10px 0}
 .navbtns{display:flex;justify-content:space-between;margin-top:14px}
+/* video */
+.video-wrap{position:relative;padding-top:56.25%;border-radius:12px;overflow:hidden;margin-top:12px;background:#000}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vbtn{margin-top:12px;font-size:.95rem;padding:12px}
+.vlink{background:none;border:none;color:var(--brand);font-weight:700;font-size:.85rem;padding:8px 0;cursor:pointer;display:block}
 /* done */
 .done-emoji{font-size:4.5rem;text-align:center;margin:30px 0 10px}
 input[type=range]{width:100%;accent-color:var(--accent);height:34px}
@@ -106,51 +111,51 @@ input[type=range]{width:100%;accent-color:var(--accent);height:34px}
    type: 'reps' = série × opakovania (ručné odkliknutie),
          'time' = odpočítavanie s pípaním. perSide = zvlášť ľavá / pravá. */
 const EXERCISES = [
- {id:'catcow', phase:'1 · Mobilita', name:'Mačka – ťava', emoji:'🐈',
+ {id:'catcow', yt:'1Y0YjXS9sKI', phase:'1 · Mobilita', name:'Mačka – ťava', emoji:'🐈',
   type:'reps', sets:1, reps:10,
   desc:'Kľakni si na štyri. S nádychom prehni chrbát nadol a pozri hore (ťava), s výdychom vyhrb chrbát nahor a zatlač hrudník k stropu (mačka). Pohyb veď pomaly, hlavne z hrudnej chrbtice.',
   tip:'Predstav si, že chceš ohýbať chrbát stavec po stavci.'},
- {id:'needle', phase:'1 · Mobilita', name:'Navliekanie ihly', emoji:'🧵',
+ {id:'needle', yt:'7C8-zj3nRro', phase:'1 · Mobilita', name:'Navliekanie ihly', emoji:'🧵',
   type:'reps', sets:1, reps:8, note:'na každú stranu',
   desc:'Na štyroch prevleč pravú ruku popod ľavé rameno čo najďalej, rameno a spánok polož na zem, chvíľu vydrž a vráť sa. Vystriedaj strany. Krásne rozhýbe rotáciu hrudníka — presne miesto, kde ťa bolí.',
   tip:'Panva ostáva na mieste, rotuje len hrudník.'},
- {id:'openbook', phase:'1 · Mobilita', name:'Otváranie knihy', emoji:'📖',
+ {id:'openbook', yt:'rDviWORCWEw', phase:'1 · Mobilita', name:'Otváranie knihy', emoji:'📖',
   type:'reps', sets:1, reps:8, note:'na každú stranu',
   desc:'Ľahni si na bok, kolená pokrčené na 90°, ruky natiahnuté pred sebou na sebe. Vrchnú ruku pomaly otvor oblúkom na druhú stranu, pohľad ide za rukou, kolená ostávajú pri sebe. Vráť sa a opakuj.',
   tip:'Vydrž 2–3 s v otvorenej polohe a dodýchni do hrudníka.'},
- {id:'thext', phase:'1 · Mobilita', name:'Extenzia cez operadlo', emoji:'🪑',
+ {id:'thext', yt:'4DgM17tIwtw', phase:'1 · Mobilita', name:'Extenzia cez operadlo', emoji:'🪑',
   type:'reps', sets:1, reps:10,
   desc:'Sadni si na stoličku s nižším operadlom (alebo použi penový valec na zemi). Ruky za hlavu, opri hrudnú chrbticu o hranu operadla a pomaly sa zakloň dozadu cez operadlo. Vráť sa a opakuj.',
   tip:'Zakláňaš hrudník, nie krížovú chrbticu — brucho drž spevnené.'},
- {id:'chintuck', phase:'2 · Posilnenie', name:'Zasúvanie brady', emoji:'🐢',
+ {id:'chintuck', yt:'7rnlAVhAK-8', phase:'2 · Posilnenie', name:'Zasúvanie brady', emoji:'🐢',
   type:'reps', sets:3, reps:10, hold:5,
   desc:'V sede alebo pri stene: zasuň bradu dozadu (sprav si „dvojitú bradu“), akoby ťa niekto tlačil prstom do čela. Temeno ťahaj hore. Vydrž 5 sekúnd a povoľ. Posilňuje hlboké flexory krku — základ proti predsunu hlavy z PC.',
   tip:'Nekloň hlavu dole, len ju posúvaj vodorovne dozadu.'},
- {id:'wallangel', phase:'2 · Posilnenie', name:'Anjeli pri stene', emoji:'👼',
+ {id:'wallangel', yt:'CwoPzrBDfpk', phase:'2 · Posilnenie', name:'Anjeli pri stene', emoji:'👼',
   type:'reps', sets:3, reps:8,
   desc:'Postav sa chrbtom k stene, päty kúsok od nej. Zadok, lopatky aj hlava sa dotýkajú steny. Ruky na stenu do tvaru „W“ a pomaly ich súvaj nahor do „Y“ a späť. Predlaktia a chrbty rúk drž pri stene.',
   tip:'Rebrá nevytláčaj dopredu — drieková chrbtica sa nesmie prehnúť.'},
- {id:'scapsq', phase:'2 · Posilnenie', name:'Sťahovanie lopatiek', emoji:'🦋',
+ {id:'scapsq', yt:'ouRhQE2iOI8', phase:'2 · Posilnenie', name:'Sťahovanie lopatiek', emoji:'🦋',
   type:'reps', sets:3, reps:10, hold:5,
   desc:'V sede alebo v stoji stiahni lopatky k sebe a mierne dole (do zadných vreciek nohavíc), vydrž 5 sekúnd, povoľ. Ak máš gumu (expander), rob to ako rozťahovanie gumy pred telom — pull-apart.',
   tip:'Ramená nevyťahuj k ušiam, trapézy drž uvoľnené.'},
- {id:'ytw', phase:'2 · Posilnenie', name:'Y – T – W ležmo', emoji:'🏊',
+ {id:'ytw', yt:'Yv6sUKOwOY8', phase:'2 · Posilnenie', name:'Y – T – W ležmo', emoji:'🏊',
   type:'reps', sets:2, reps:6, note:'každé písmeno',
   desc:'Ľahni si na brucho, čelo na podložke. Ruky do tvaru Y — nadvihni ich pár cm od zeme, 2 s výdrž, polož. Potom do tvaru T a nakoniec do W. 6 opakovaní v každej polohe. Posilní dolné trapézy a medzilopatkové svaly.',
   tip:'Palce smerujú k stropu, pohyb robia lopatky, nie krk.'},
- {id:'cobra', phase:'2 · Posilnenie', name:'Kobra — výdrž', emoji:'🐍',
+ {id:'cobra', yt:'Z40g1jp0sk4', phase:'2 · Posilnenie', name:'Kobra — výdrž', emoji:'🐍',
   type:'time', sets:3, secs:20, rest:15,
   desc:'Ľahni si na brucho, ruky pozdĺž tela dlaňami k stropu. Nadvihni hrudník a ruky od zeme, lopatky stiahni k sebe a dole, pohľad do zeme. Drž po celý čas odpočítavania.',
   tip:'Dýchaj plynulo, krk drž v predĺžení chrbtice.'},
- {id:'pec', phase:'3 · Strečing', name:'Strečing prsných svalov', emoji:'🚪',
+ {id:'pec', yt:'M850sCj9LHQ', phase:'3 · Strečing', name:'Strečing prsných svalov', emoji:'🚪',
   type:'time', sets:3, secs:30, rest:10,
   desc:'Postav sa do dverí, predlaktia opri o zárubňu (lakte vo výške ramien), a urob malý krok vpred, kým necítiš ťah v prsiach. Drž po celý čas. Skrátené prsné svaly ťahajú ramená dopredu — toto ich uvoľní.',
   tip:'Ťah má byť príjemný, nie bolestivý. Nezakláňaj driek.'},
- {id:'trap', phase:'3 · Strečing', name:'Strečing trapézov', emoji:'🙆',
+ {id:'trap', yt:'-r0eoFS7_5Q', phase:'3 · Strečing', name:'Strečing trapézov', emoji:'🙆',
   type:'time', sets:2, secs:30, perSide:true, rest:5,
   desc:'V sede uchop rukou spodok stoličky. Druhou rukou jemne ukloň hlavu na opačnú stranu (ucho k ramenu), kým necítiš ťah medzi krkom a ramenom. Pre ľavé rameno začni ťahom doprava.',
   tip:'Ťahaj jemne — len váhou ruky, nie silou.'},
- {id:'child', phase:'3 · Strečing', name:'Pozícia dieťaťa', emoji:'🧘',
+ {id:'child', yt:'fzM3uSrr4-g', phase:'3 · Strečing', name:'Pozícia dieťaťa', emoji:'🧘',
   type:'time', sets:1, secs:60,
   desc:'Sadni si na päty, natiahni ruky ďaleko dopredu a polož čelo na zem. Dýchaj zhlboka do chrbta a nechaj chrbticu vytiahnuť. Záverečné uvoľnenie celej chrbtice.',
   tip:'Pre väčší ťah medzi lopatkami prejdi rukami mierne do strany.'},
@@ -238,6 +243,17 @@ function finishWorkout(){
 function saveWorkout(pain){
   data.history[todayISO()]={pain,min:W.durMin};
   store.save(data);W=null;view='home';render();
+}
+
+/* video ukážky (lazy — načíta sa až po kliknutí) */
+function toggleVideo(btn,id){
+  const w=btn.nextElementSibling, open=w.style.display!=='none';
+  if(open){w.style.display='none';w.innerHTML='';btn.textContent='🎬 Ukázať video'}
+  else{
+    w.style.display='block';
+    w.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>';
+    btn.textContent='✕ Skryť video';
+  }
 }
 
 /* časovač pre time-kroky a rest */
@@ -376,6 +392,7 @@ function renderWorkout(){
     ${body}
     <div class="ex-desc" style="margin-top:14px">${ex.desc}</div>
     <div class="ex-tip">💡 ${ex.tip}</div>
+    ${ex.yt?`<button class="btn secondary vbtn" onclick="toggleVideo(this,'${ex.yt}')">🎬 Ukázať video</button><div class="video-wrap" style="display:none"></div>`:''}
   </div>
   <div class="navbtns">
     <button class="btn ghost" onclick="prevStep()" ${W.i===0?'disabled':''}>‹ Späť</button>
@@ -407,7 +424,8 @@ function renderInfo(){
       ?`${ex.sets>1?ex.sets+' × ':''}${ex.reps} opak.${ex.hold?' (výdrž '+ex.hold+' s)':''}${ex.note?' · '+ex.note:''}`
       :`${ex.sets>1?ex.sets+' × ':''}${ex.secs} s${ex.perSide?' · každá strana':''}`;
     return `<div class="info-item"><b>${ex.emoji} ${ex.name} <span class="muted" style="font-weight:400">— ${t}</span></b>
-      <div class="muted" style="line-height:1.5">${ex.desc}</div></div>`;
+      <div class="muted" style="line-height:1.5">${ex.desc}</div>
+      ${ex.yt?`<button class="vlink" onclick="toggleVideo(this,'${ex.yt}')">🎬 Ukázať video</button><div class="video-wrap" style="display:none"></div>`:''}</div>`;
   }).join('');
   app.innerHTML=`
   <button class="back" onclick="view='home';render()">‹ Domov</button>
