@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RehabChrbát">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>RehabChrbát — cvičenie pre zdravý chrbát</title>
+<style>
+:root{
+  --bg:#0d1220; --card:#161d30; --card2:#1d2640; --line:#26304d;
+  --text:#eef2fb; --muted:#8b96b3; --brand:#0086ff; --accent:#00d4b3;
+  --warn:#ffb020; --grad:linear-gradient(135deg,#0086ff,#00d4b3);
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overscroll-behavior:none;
+}
+#app{max-width:480px;margin:0 auto;padding:20px 16px 40px;min-height:100vh}
+h1{font-size:1.5rem;font-weight:800}
+h2{font-size:1.05rem;font-weight:700;margin-bottom:10px}
+.muted{color:var(--muted);font-size:.85rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.btn{
+  display:block;width:100%;padding:16px;border:none;border-radius:14px;
+  font-size:1.05rem;font-weight:700;color:#fff;background:var(--grad);
+  cursor:pointer;transition:transform .1s, opacity .2s;
+}
+.btn:active{transform:scale(.97)}
+.btn.secondary{background:var(--card2);border:1px solid var(--line);color:var(--text)}
+.btn.ghost{background:none;border:none;color:var(--muted);font-size:.9rem;padding:10px}
+.btn:disabled{opacity:.45}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+/* home */
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.streak{
+  background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:8px 14px;font-weight:700;font-size:.95rem;
+}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 8px;text-align:center}
+.stat .v{font-size:1.4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat .l{font-size:.7rem;color:var(--muted);margin-top:2px}
+.week{display:flex;justify-content:space-between;margin-top:12px}
+.wday{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.7rem;color:var(--muted)}
+.wdot{width:30px;height:30px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.wdot.done{background:var(--grad);border:none;color:#fff;font-weight:700}
+.wdot.today{border:2px solid var(--brand)}
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:.8rem}
+.cal .h{color:var(--muted);font-size:.65rem;padding:4px 0}
+.cal .d{padding:7px 0;border-radius:9px;color:var(--muted)}
+.cal .d.done{background:rgba(0,212,179,.18);color:var(--accent);font-weight:700}
+.cal .d.today{outline:2px solid var(--brand);color:var(--text)}
+/* chart */
+.chart{display:flex;align-items:flex-end;gap:4px;height:70px;margin-top:8px}
+.chart .bar{flex:1;background:var(--grad);border-radius:4px 4px 0 0;min-height:4px;opacity:.85}
+/* workout */
+.progress{height:6px;background:var(--card2);border-radius:99px;overflow:hidden;margin:12px 0 4px}
+.progress i{display:block;height:100%;background:var(--grad);border-radius:99px;transition:width .3s}
+.phase{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+.ex-emoji{font-size:3.4rem;text-align:center;margin:10px 0}
+.ex-name{font-size:1.45rem;font-weight:800;text-align:center;margin-bottom:6px}
+.ex-target{text-align:center;color:var(--brand);font-weight:700;margin-bottom:12px}
+.ex-desc{color:var(--muted);font-size:.92rem;line-height:1.55;margin-bottom:10px}
+.ex-tip{font-size:.85rem;background:rgba(0,134,255,.1);border:1px solid rgba(0,134,255,.3);border-radius:12px;padding:10px 12px;color:#bcd7ff;line-height:1.45}
+.timer{
+  font-size:4.2rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;
+  margin:14px 0;letter-spacing:-2px;
+}
+.timer.low{color:var(--warn)}
+.setinfo{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:12px}
+.reps-big{font-size:3.6rem;font-weight:800;text-align:center;margin:10px 0}
+.navbtns{display:flex;justify-content:space-between;margin-top:14px}
+/* done */
+.done-emoji{font-size:4.5rem;text-align:center;margin:30px 0 10px}
+input[type=range]{width:100%;accent-color:var(--accent);height:34px}
+.painval{text-align:center;font-size:2.6rem;font-weight:800;margin:6px 0}
+/* info list */
+.info-item{border-bottom:1px solid var(--line);padding:13px 0}
+.info-item:last-child{border:none}
+.info-item b{display:block;margin-bottom:3px}
+.disclaimer{font-size:.75rem;color:var(--muted);line-height:1.5;margin-top:16px;text-align:center}
+.back{color:var(--brand);font-weight:700;cursor:pointer;font-size:.95rem;padding:6px 0;display:inline-block;background:none;border:none}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+/* ============ REHABILITAČNÝ PROGRAM ============
+   Dg. M51.3 — VAS hrudnej chrbtice, bolesti medzi lopatkami vľavo + ľavé rameno.
+   Program: mobilizácia Th chrbtice → posilnenie medzilopatkových svalov
+   a hlbokých flexorov krku → strečing prsných svalov a trapézov.
+   type: 'reps' = série × opakovania (ručné odkliknutie),
+         'time' = odpočítavanie s pípaním. perSide = zvlášť ľavá / pravá. */
+const EXERCISES = [
+ {id:'catcow', phase:'1 · Mobilita', name:'Mačka – ťava', emoji:'🐈',
+  type:'reps', sets:1, reps:10,
+  desc:'Kľakni si na štyri. S nádychom prehni chrbát nadol a pozri hore (ťava), s výdychom vyhrb chrbát nahor a zatlač hrudník k stropu (mačka). Pohyb veď pomaly, hlavne z hrudnej chrbtice.',
+  tip:'Predstav si, že chceš ohýbať chrbát stavec po stavci.'},
+ {id:'needle', phase:'1 · Mobilita', name:'Navliekanie ihly', emoji:'🧵',
+  type:'reps', sets:1, reps:8, note:'na každú stranu',
+  desc:'Na štyroch prevleč pravú ruku popod ľavé rameno čo najďalej, rameno a spánok polož na zem, chvíľu vydrž a vráť sa. Vystriedaj strany. Krásne rozhýbe rotáciu hrudníka — presne miesto, kde ťa bolí.',
+  tip:'Panva ostáva na mieste, rotuje len hrudník.'},
+ {id:'openbook', phase:'1 · Mobilita', name:'Otváranie knihy', emoji:'📖',
+  type:'reps', sets:1, reps:8, note:'na každú stranu',
+  desc:'Ľahni si na bok, kolená pokrčené na 90°, ruky natiahnuté pred sebou na sebe. Vrchnú ruku pomaly otvor oblúkom na druhú stranu, pohľad ide za rukou, kolená ostávajú pri sebe. Vráť sa a opakuj.',
+  tip:'Vydrž 2–3 s v otvorenej polohe a dodýchni do hrudníka.'},
+ {id:'thext', phase:'1 · Mobilita', name:'Extenzia cez operadlo', emoji:'🪑',
+  type:'reps', sets:1, reps:10,
+  desc:'Sadni si na stoličku s nižším operadlom (alebo použi penový valec na zemi). Ruky za hlavu, opri hrudnú chrbticu o hranu operadla a pomaly sa zakloň dozadu cez operadlo. Vráť sa a opakuj.',
+  tip:'Zakláňaš hrudník, nie krížovú chrbticu — brucho drž spevnené.'},
+ {id:'chintuck', phase:'2 · Posilnenie', name:'Zasúvanie brady', emoji:'🐢',
+  type:'reps', sets:3, reps:10, hold:5,
+  desc:'V sede alebo pri stene: zasuň bradu dozadu (sprav si „dvojitú bradu“), akoby ťa niekto tlačil prstom do čela. Temeno ťahaj hore. Vydrž 5 sekúnd a povoľ. Posilňuje hlboké flexory krku — základ proti predsunu hlavy z PC.',
+  tip:'Nekloň hlavu dole, len ju posúvaj vodorovne dozadu.'},
+ {id:'wallangel', phase:'2 · Posilnenie', name:'Anjeli pri stene', emoji:'👼',
+  type:'reps', sets:3, reps:8,
+  desc:'Postav sa chrbtom k stene, päty kúsok od nej. Zadok, lopatky aj hlava sa dotýkajú steny. Ruky na stenu do tvaru „W“ a pomaly ich súvaj nahor do „Y“ a späť. Predlaktia a chrbty rúk drž pri stene.',
+  tip:'Rebrá nevytláčaj dopredu — drieková chrbtica sa nesmie prehnúť.'},
+ {id:'scapsq', phase:'2 · Posilnenie', name:'Sťahovanie lopatiek', emoji:'🦋',
+  type:'reps', sets:3, reps:10, hold:5,
+  desc:'V sede alebo v stoji stiahni lopatky k sebe a mierne dole (do zadných vreciek nohavíc), vydrž 5 sekúnd, povoľ. Ak máš gumu (expander), rob to ako rozťahovanie gumy pred telom — pull-apart.',
+  tip:'Ramená nevyťahuj k ušiam, trapézy drž uvoľnené.'},
+ {id:'ytw', phase:'2 · Posilnenie', name:'Y – T – W ležmo', emoji:'🏊',
+  type:'reps', sets:2, reps:6, note:'každé písmeno',
+  desc:'Ľahni si na brucho, čelo na podložke. Ruky do tvaru Y — nadvihni ich pár cm od zeme, 2 s výdrž, polož. Potom do tvaru T a nakoniec do W. 6 opakovaní v každej polohe. Posilní dolné trapézy a medzilopatkové svaly.',
+  tip:'Palce smerujú k stropu, pohyb robia lopatky, nie krk.'},
+ {id:'cobra', phase:'2 · Posilnenie', name:'Kobra — výdrž', emoji:'🐍',
+  type:'time', sets:3, secs:20, rest:15,
+  desc:'Ľahni si na brucho, ruky pozdĺž tela dlaňami k stropu. Nadvihni hrudník a ruky od zeme, lopatky stiahni k sebe a dole, pohľad do zeme. Drž po celý čas odpočítavania.',
+  tip:'Dýchaj plynulo, krk drž v predĺžení chrbtice.'},
+ {id:'pec', phase:'3 · Strečing', name:'Strečing prsných svalov', emoji:'🚪',
+  type:'time', sets:3, secs:30, rest:10,
+  desc:'Postav sa do dverí, predlaktia opri o zárubňu (lakte vo výške ramien), a urob malý krok vpred, kým necítiš ťah v prsiach. Drž po celý čas. Skrátené prsné svaly ťahajú ramená dopredu — toto ich uvoľní.',
+  tip:'Ťah má byť príjemný, nie bolestivý. Nezakláňaj driek.'},
+ {id:'trap', phase:'3 · Strečing', name:'Strečing trapézov', emoji:'🙆',
+  type:'time', sets:2, secs:30, perSide:true, rest:5,
+  desc:'V sede uchop rukou spodok stoličky. Druhou rukou jemne ukloň hlavu na opačnú stranu (ucho k ramenu), kým necítiš ťah medzi krkom a ramenom. Pre ľavé rameno začni ťahom doprava.',
+  tip:'Ťahaj jemne — len váhou ruky, nie silou.'},
+ {id:'child', phase:'3 · Strečing', name:'Pozícia dieťaťa', emoji:'🧘',
+  type:'time', sets:1, secs:60,
+  desc:'Sadni si na päty, natiahni ruky ďaleko dopredu a polož čelo na zem. Dýchaj zhlboka do chrbta a nechaj chrbticu vytiahnuť. Záverečné uvoľnenie celej chrbtice.',
+  tip:'Pre väčší ťah medzi lopatkami prejdi rukami mierne do strany.'},
+];
+
+/* ============ ÚLOŽISKO ============ */
+const KEY='rehab-v1';
+const store={
+  load(){ try{return JSON.parse(localStorage.getItem(KEY))||{history:{}}}catch(e){return{history:{}}} },
+  save(d){ localStorage.setItem(KEY,JSON.stringify(d)) }
+};
+let data=store.load();
+const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const dISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+function streak(){
+  let s=0,d=new Date();
+  if(!data.history[dISO(d)]) d.setDate(d.getDate()-1); // dnes ešte necvičil → počítaj od včera
+  while(data.history[dISO(d)]){s++;d.setDate(d.getDate()-1)}
+  return s;
+}
+
+/* ============ ZVUK ============ */
+let actx;
+function beep(freq=880,dur=.12){
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.frequency.value=freq;o.connect(g);g.connect(actx.destination);
+    g.gain.setValueAtTime(.25,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dur);
+    o.start();o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+
+/* ============ KROKY TRÉNINGU ============ */
+function buildSteps(){
+  const steps=[];
+  for(const ex of EXERCISES){
+    const sides=ex.perSide?['ľavá strana','pravá strana']:[null];
+    for(let s=1;s<=ex.sets;s++){
+      for(const side of sides){
+        steps.push({ex,set:s,side});
+        }
+      const isLast=s===ex.sets;
+      if(!isLast&&ex.sets>1) steps.push({rest:ex.rest||20,ex});
+    }
+  }
+  return steps;
+}
+
+/* ============ STAV ============ */
+let view='home';
+let W=null;   // workout state
+let timerInt=null, wakeLock=null;
+
+async function keepAwake(on){
+  try{
+    if(on&&'wakeLock'in navigator){wakeLock=await navigator.wakeLock.request('screen')}
+    else if(wakeLock){wakeLock.release();wakeLock=null}
+  }catch(e){}
+}
+
+function startWorkout(){
+  W={steps:buildSteps(),i:0,startedAt:Date.now(),timer:null};
+  view='workout';keepAwake(true);render();
+}
+function stopTimer(){if(timerInt){clearInterval(timerInt);timerInt=null}}
+function exitWorkout(){
+  if(confirm('Naozaj ukončiť cvičenie? Pokrok sa neuloží.')){
+    stopTimer();keepAwake(false);W=null;view='home';render();
+  }
+}
+function nextStep(){
+  stopTimer();
+  if(W.i>=W.steps.length-1){finishWorkout();return}
+  W.i++;render();
+}
+function prevStep(){stopTimer();if(W.i>0){W.i--;render()}}
+function finishWorkout(){
+  stopTimer();keepAwake(false);
+  W.durMin=Math.max(1,Math.round((Date.now()-W.startedAt)/60000));
+  view='done';beep(660,.3);setTimeout(()=>beep(880,.4),250);render();
+}
+function saveWorkout(pain){
+  data.history[todayISO()]={pain,min:W.durMin};
+  store.save(data);W=null;view='home';render();
+}
+
+/* časovač pre time-kroky a rest */
+function runCountdown(total,onDone){
+  const el=document.getElementById('t');
+  let end=Date.now()+total*1000,lastShown=total;
+  const tick=()=>{
+    const left=Math.max(0,Math.ceil((end-Date.now())/1000));
+    if(el){el.textContent=fmt(left);el.classList.toggle('low',left<=5&&left>0)}
+    if(left!==lastShown){lastShown=left;if(left<=3&&left>0)beep(660,.1)}
+    if(left<=0){stopTimer();beep(1046,.5);setTimeout(onDone,600)}
+  };
+  stopTimer();timerInt=setInterval(tick,200);tick();
+}
+const fmt=s=>s>=60?Math.floor(s/60)+':'+String(s%60).padStart(2,'0'):String(s);
+
+/* ============ RENDER ============ */
+const $=id=>document.getElementById(id);
+const app=document.getElementById('app');
+
+function render(){
+  if(view==='home')renderHome();
+  else if(view==='workout')renderWorkout();
+  else if(view==='done')renderDone();
+  else if(view==='info')renderInfo();
+}
+
+function renderHome(){
+  const t=todayISO(), doneToday=!!data.history[t];
+  const total=Object.keys(data.history).length;
+  const entries=Object.entries(data.history).sort((a,b)=>a[0]<b[0]?-1:1);
+  const lastPain=entries.length?entries[entries.length-1][1].pain:null;
+
+  // týždeň Po–Ne
+  const now=new Date();
+  const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  let week='';
+  const names=['Po','Ut','St','Št','Pi','So','Ne'];
+  for(let i=0;i<7;i++){
+    const d=new Date(mon);d.setDate(mon.getDate()+i);
+    const iso=dISO(d),done=!!data.history[iso],isT=iso===t;
+    week+=`<div class="wday">${names[i]}<div class="wdot ${done?'done':''} ${isT?'today':''}">${done?'✓':d.getDate()}</div></div>`;
+  }
+
+  // kalendár aktuálneho mesiaca
+  const y=now.getFullYear(),m=now.getMonth();
+  const first=(new Date(y,m,1).getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+  let cal=names.map(n=>`<div class="h">${n}</div>`).join('');
+  for(let i=0;i<first;i++)cal+='<div></div>';
+  for(let d=1;d<=days;d++){
+    const iso=dISO(new Date(y,m,d));
+    cal+=`<div class="d ${data.history[iso]?'done':''} ${iso===t?'today':''}">${d}</div>`;
+  }
+
+  // graf bolesti (posledných 14 záznamov)
+  const last14=entries.slice(-14);
+  const bars=last14.map(([d,v])=>`<div class="bar" style="height:${Math.max(6,v.pain*10)}%" title="${d}: ${v.pain}/10"></div>`).join('');
+
+  app.innerHTML=`
+  <div class="header">
+    <div><h1>Rehab<span style="background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Chrbát</span></h1>
+    <div class="muted">${now.toLocaleDateString('sk-SK',{weekday:'long',day:'numeric',month:'long'})}</div></div>
+    <div class="streak">🔥 ${streak()}</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v">${total}</div><div class="l">cvičení spolu</div></div>
+    <div class="stat"><div class="v">${streak()}</div><div class="l">dní v rade</div></div>
+    <div class="stat"><div class="v">${lastPain==null?'–':lastPain+'/10'}</div><div class="l">posl. bolesť</div></div>
+  </div>
+
+  <button class="btn" onclick="startWorkout()">${doneToday?'✓ Dnes odcvičené — cvičiť znova':'▶ Začať dnešné cvičenie (~15 min)'}</button>
+  <div class="card" style="margin-top:14px">
+    <h2>Tento týždeň</h2>
+    <div class="week">${week}</div>
+  </div>
+
+  <div class="card">
+    <h2>${now.toLocaleDateString('sk-SK',{month:'long',year:'numeric'})}</h2>
+    <div class="cal">${cal}</div>
+  </div>
+
+  ${last14.length?`<div class="card"><h2>Vývoj bolesti (0–10)</h2><div class="chart">${bars}</div>
+  <div class="muted" style="margin-top:6px">Posledných ${last14.length} cvičení — cieľ: klesajúci trend.</div></div>`:''}
+
+  <button class="btn secondary" onclick="view='info';render()">📋 Zoznam cvikov a postup</button>
+
+  <p class="disclaimer">Program vychádza z odporúčania ortopéda (Dg. M51.3 — VAS Th): pravidelné cvičenie aj doma.
+  Cvič v bezbolestnom rozsahu. Ostrá bolesť, mravčenie do rúk či zhoršenie = prestaň a povedz to lekárovi / fyzioterapeutovi na RHB.</p>`;
+}
+
+function renderWorkout(){
+  const step=W.steps[W.i], n=W.steps.length, pct=Math.round(W.i/n*100);
+
+  if(step.rest){
+    app.innerHTML=`
+    <button class="btn ghost" style="text-align:left;width:auto" onclick="exitWorkout()">✕ Ukončiť</button>
+    <div class="progress"><i style="width:${pct}%"></i></div>
+    <div class="muted" style="text-align:center">krok ${W.i+1} / ${n}</div>
+    <div class="card" style="margin-top:20px;text-align:center">
+      <div class="phase">Oddych</div>
+      <div class="ex-emoji">😮‍💨</div>
+      <div class="timer" id="t">${step.rest}</div>
+      <div class="setinfo">Vydýchaj, ďalšia séria: ${step.ex.name}</div>
+      <button class="btn secondary" onclick="nextStep()">Preskočiť oddych ›</button>
+    </div>`;
+    runCountdown(step.rest,nextStep);
+    return;
+  }
+
+  const ex=step.ex;
+  const setLabel=ex.sets>1?`Séria ${step.set} z ${ex.sets}`:'';
+  const sideLabel=step.side?` · ${step.side}`:'';
+  let target='', body='';
+  if(ex.type==='reps'){
+    target=`${ex.reps}×${ex.hold?` · výdrž ${ex.hold} s`:''}${ex.note?` · ${ex.note}`:''}`;
+    body=`
+      <div class="reps-big">${ex.reps}<span style="font-size:1.4rem;color:var(--muted)"> opak.</span></div>
+      <button class="btn" onclick="beep(1046,.25);nextStep()">✓ Hotovo${ex.sets>1?' — séria '+step.set:''}</button>`;
+  }else{
+    target=`${ex.secs} s${ex.note?` · ${ex.note}`:''}`;
+    body=`
+      <div class="timer" id="t">${fmt(ex.secs)}</div>
+      <button class="btn" id="startBtn" onclick="this.style.display='none';runCountdown(${ex.secs},nextStep)">▶ Spustiť odpočet</button>`;
+  }
+
+  app.innerHTML=`
+  <button class="btn ghost" style="text-align:left;width:auto" onclick="exitWorkout()">✕ Ukončiť</button>
+  <div class="progress"><i style="width:${pct}%"></i></div>
+  <div class="muted" style="text-align:center">krok ${W.i+1} / ${n}</div>
+  <div class="card" style="margin-top:14px">
+    <div class="phase">${ex.phase}${setLabel?' · '+setLabel:''}${sideLabel}</div>
+    <div class="ex-emoji">${ex.emoji}</div>
+    <div class="ex-name">${ex.name}</div>
+    <div class="ex-target">${target}</div>
+    ${body}
+    <div class="ex-desc" style="margin-top:14px">${ex.desc}</div>
+    <div class="ex-tip">💡 ${ex.tip}</div>
+  </div>
+  <div class="navbtns">
+    <button class="btn ghost" onclick="prevStep()" ${W.i===0?'disabled':''}>‹ Späť</button>
+    <button class="btn ghost" onclick="nextStep()">Preskočiť ›</button>
+  </div>`;
+}
+
+function renderDone(){
+  let pain=5;
+  app.innerHTML=`
+  <div class="done-emoji">🎉</div>
+  <h1 style="text-align:center">Odcvičené!</h1>
+  <p class="muted" style="text-align:center;margin:8px 0 24px">Trvanie: ${W.durMin} min · séria: 🔥 ${streak()+ (data.history[todayISO()]?0:1)} dní</p>
+  <div class="card">
+    <h2>Aká je teraz bolesť medzi lopatkami / v ramene?</h2>
+    <div class="painval" id="pv">5</div>
+    <input type="range" min="0" max="10" value="5" id="pain"
+      oninput="document.getElementById('pv').textContent=this.value">
+    <div class="row muted" style="justify-content:space-between;margin-top:2px">
+      <span>0 = žiadna</span><span style="text-align:right">10 = najhoršia</span>
+    </div>
+  </div>
+  <button class="btn" onclick="saveWorkout(+document.getElementById('pain').value)">Uložiť a dokončiť</button>`;
+}
+
+function renderInfo(){
+  const items=EXERCISES.map(ex=>{
+    const t=ex.type==='reps'
+      ?`${ex.sets>1?ex.sets+' × ':''}${ex.reps} opak.${ex.hold?' (výdrž '+ex.hold+' s)':''}${ex.note?' · '+ex.note:''}`
+      :`${ex.sets>1?ex.sets+' × ':''}${ex.secs} s${ex.perSide?' · každá strana':''}`;
+    return `<div class="info-item"><b>${ex.emoji} ${ex.name} <span class="muted" style="font-weight:400">— ${t}</span></b>
+      <div class="muted" style="line-height:1.5">${ex.desc}</div></div>`;
+  }).join('');
+  app.innerHTML=`
+  <button class="back" onclick="view='home';render()">‹ Domov</button>
+  <h1 style="margin:8px 0 4px">Zoznam cvikov</h1>
+  <p class="muted" style="margin-bottom:14px">Denný program (~15 min) pre bolesti medzi lopatkami a rameno:
+  <b style="color:var(--text)">1</b> rozhýbanie hrudnej chrbtice → <b style="color:var(--text)">2</b> posilnenie medzilopatkových svalov a krku → <b style="color:var(--text)">3</b> strečing skrátených svalov.</p>
+  <div class="card">${items}</div>
+  <p class="disclaimer">Navyše počas práce za PC: každú hodinu si sprav 5× zasunutie brady a pretiahni sa dozadu cez operadlo. Monitor do výšky očí, lakte na 90°.</p>`;
+}
+
+render();
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
