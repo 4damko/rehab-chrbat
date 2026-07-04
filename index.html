@@ -282,6 +282,20 @@ async function loadActivities(force){
     if(view==='home')render();
   }catch(e){console.warn('Strava:',e)}
 }
+/* Strava dáta zo súboru strava.json (sync cez Claude + Strava MCP —
+   funguje bez API predplatného; súbor pushuje Claude do repa) */
+async function loadStravaFile(){
+  try{
+    const r=await fetch('strava.json?t='+Date.now());
+    if(!r.ok)return;
+    const j=await r.json();
+    if(!j.acts||!j.acts.length)return;
+    data.stravaCache={ts:Date.parse(j.updated)||Date.now(),acts:j.acts,file:true};
+    store.save(data);
+    if(view==='home')render();
+  }catch(e){}
+}
+
 function disconnectStrava(){
   if(confirm('Odpojiť Strava účet?')){
     delete data.strava;delete data.stravaCache;store.save(data);render();
@@ -455,16 +469,24 @@ function renderHome(){
     return `<div class="act"><span>${ICO[a.type]||'⭐'}</span><div><b>${esc(a.name)}</b>
       <div class="muted" style="font-size:.75rem">${dt.getDate()}.${dt.getMonth()+1}. · ${a.d>0?(a.d/1000).toFixed(1)+' km · ':''}${Math.round(a.t/60)} min${a.hr?' · ♥ '+Math.round(a.hr):''}</div></div></div>`;
   }).join('');
-  const stravaCard=stravaConnected()
-   ?`<div class="card"><h2>🏃 Strava <span class="muted" style="font-weight:400">— ${esc(data.strava.athlete||'prepojené')}</span></h2>
+  const isFile=(data.stravaCache||{}).file;
+  let stravaCard;
+  if(stravaConnected()){
+    stravaCard=`<div class="card"><h2>🏃 Strava <span class="muted" style="font-weight:400">— ${esc(data.strava.athlete||'prepojené')}</span></h2>
       ${actRows||'<div class="muted">Zatiaľ žiadne aktivity — daj ↻ Obnoviť.</div>'}
       <div class="navbtns" style="margin-top:6px">
         <button class="btn ghost" onclick="loadActivities(true)">↻ Obnoviť</button>
         <button class="btn ghost" onclick="disconnectStrava()">Odpojiť</button>
-      </div></div>`
-   :`<div class="card"><h2>🏃 Strava</h2>
-      <div class="muted" style="margin-bottom:12px">Prepoj si Strava účet — behy a bicykel (aj s tepom z hrudného pásu) sa ukážu tu a v kalendári, a každá odcvičená rehabka sa nahrá na Stravu.</div>
-      <button class="btn" style="background:#fc4c02" onclick="view='stravasetup';render()">Prepojiť so Strava ›</button></div>`;
+      </div></div>`;
+  }else if(isFile&&acts.length){
+    stravaCard=`<div class="card"><h2>🏃 Strava</h2>
+      ${actRows}
+      <div class="muted" style="margin-top:8px;font-size:.75rem">Synchronizované cez Claude · ${new Date(data.stravaCache.ts).toLocaleDateString('sk-SK',{day:'numeric',month:'numeric'})} — o novší sync požiadaj Clauda.</div></div>`;
+  }else{
+    stravaCard=`<div class="card"><h2>🏃 Strava</h2>
+      <div class="muted" style="margin-bottom:12px">Behy a bicykel sa sem dajú dostať dvoma cestami: cez Claude + Strava MCP (zadarmo, sync na požiadanie) alebo priamym API prepojením (vyžaduje Strava predplatné).</div>
+      <button class="btn" style="background:#fc4c02" onclick="view='stravasetup';render()">Priame prepojenie (API) ›</button></div>`;
+  }
 
   // strava dnes
   const dietToday=(data.diet||{})[t]||{};
@@ -513,7 +535,7 @@ function renderHome(){
   <div class="card">
     <h2>${now.toLocaleDateString('sk-SK',{month:'long',year:'numeric'})}</h2>
     <div class="cal">${cal}</div>
-    ${stravaConnected()?`<div class="muted" style="margin-top:8px;font-size:.72rem"><span style="color:var(--accent)">●</span> rehab cvičenie&nbsp;&nbsp;<span style="color:#fc4c02">▬</span> Strava aktivita</div>`:''}
+    ${(stravaConnected()||stravaDays.size)?`<div class="muted" style="margin-top:8px;font-size:.72rem"><span style="color:var(--accent)">●</span> rehab cvičenie&nbsp;&nbsp;<span style="color:#fc4c02">▬</span> Strava aktivita</div>`:''}
   </div>
 
   ${last14.length?`<div class="card"><h2>Vývoj bolesti (0–10)</h2><div class="chart">${bars}</div>
@@ -657,7 +679,8 @@ render();
     history.replaceState(null,'',location.pathname);
     render();
   }
-  loadActivities();
+  if(stravaConnected())loadActivities();
+  else loadStravaFile();
 })();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
