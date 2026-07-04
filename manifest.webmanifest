@@ -4,8 +4,8 @@
   "description": "Denný rehabilitačný program pre bolesti hrudnej chrbtice a ramena (VAS Th)",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0d1220",
-  "theme_color": "#0d1220",
+  "background_color": "#f3f7fc",
+  "theme_color": "#f3f7fc",
   "lang": "sk",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }

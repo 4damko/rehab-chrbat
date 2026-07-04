@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0d1220">
+<meta name="theme-color" content="#f3f7fc">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="RehabChrbát">
@@ -13,24 +13,44 @@
 <title>RehabChrbát — cvičenie pre zdravý chrbát</title>
 <style>
 :root{
-  --bg:#0d1220; --card:#161d30; --card2:#1d2640; --line:#26304d;
-  --text:#eef2fb; --muted:#8b96b3; --brand:#0086ff; --accent:#00d4b3;
-  --warn:#ffb020; --grad:linear-gradient(135deg,#0086ff,#00d4b3);
+  --bg:#f3f7fc; --card:rgba(255,255,255,.78); --card2:#eef4fb; --line:#dde8f4;
+  --text:#152238; --muted:#5d6c86; --brand:#0086ff; --accent:#00a98f;
+  --warn:#e08900; --grad:linear-gradient(135deg,#0086ff,#00d4b3);
+  --tipbg:rgba(0,134,255,.07); --tipline:rgba(0,134,255,.22); --tiptext:#1b5c9e;
   --r:18px;
+}
+[data-theme="dark"]{
+  --bg:#0d1220; --card:#161d30; --card2:#1d2640; --line:#26304d;
+  --text:#eef2fb; --muted:#8b96b3; --accent:#00d4b3; --warn:#ffb020;
+  --tipbg:rgba(0,134,255,.1); --tipline:rgba(0,134,255,.3); --tiptext:#bcd7ff;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+html{background:var(--bg)}
 body{
-  background:var(--bg);color:var(--text);
+  background:none;color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   overscroll-behavior:none;
+}
+/* aurora mesh pozadie */
+body::before{content:'';position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(1100px 700px at 85% -10%, rgba(0,134,255,.16), transparent 60%),
+  radial-gradient(900px 620px at -15% 28%, rgba(0,212,179,.20), transparent 55%),
+  radial-gradient(750px 520px at 50% 115%, rgba(150,120,255,.13), transparent 60%),
+  linear-gradient(180deg,#f7fafd,#ecf3fa);
+}
+[data-theme="dark"] body::before{background:
+  radial-gradient(1000px 650px at 85% -10%, rgba(0,134,255,.20), transparent 60%),
+  radial-gradient(850px 580px at -12% 30%, rgba(0,212,179,.13), transparent 55%),
+  radial-gradient(700px 500px at 55% 115%, rgba(120,90,255,.10), transparent 60%),
+  #0d1220;
 }
 #app{max-width:480px;margin:0 auto;padding:20px 16px 40px;min-height:100vh}
 h1{font-size:1.5rem;font-weight:800}
 h2{font-size:1.05rem;font-weight:700;margin-bottom:10px}
 .muted{color:var(--muted);font-size:.85rem}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .btn{
   display:block;width:100%;padding:16px;border:none;border-radius:14px;
   font-size:1.05rem;font-weight:700;color:#fff;background:var(--grad);
@@ -46,8 +66,19 @@ h2{font-size:1.05rem;font-weight:700;margin-bottom:10px}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .streak{
   background:var(--card);border:1px solid var(--line);border-radius:999px;
-  padding:8px 14px;font-weight:700;font-size:.95rem;
+  padding:8px 14px;font-weight:700;font-size:.95rem;color:var(--text);
 }
+.theme-btn{cursor:pointer;font-size:1rem;line-height:1}
+/* strava */
+.diet{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}
+.diet-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;
+  border:1px solid var(--line);background:var(--card2);color:var(--text);
+  font-size:.92rem;text-align:left;cursor:pointer;font-family:inherit}
+.diet-item .chk{margin-left:auto;flex:none;width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:#fff}
+.diet-item.on{border-color:var(--accent)}
+.diet-item.on .chk{background:var(--grad);border:none}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 8px;text-align:center}
 .stat .v{font-size:1.4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -74,7 +105,7 @@ h2{font-size:1.05rem;font-weight:700;margin-bottom:10px}
 .ex-name{font-size:1.45rem;font-weight:800;text-align:center;margin-bottom:6px}
 .ex-target{text-align:center;color:var(--brand);font-weight:700;margin-bottom:12px}
 .ex-desc{color:var(--muted);font-size:.92rem;line-height:1.55;margin-bottom:10px}
-.ex-tip{font-size:.85rem;background:rgba(0,134,255,.1);border:1px solid rgba(0,134,255,.3);border-radius:12px;padding:10px 12px;color:#bcd7ff;line-height:1.45}
+.ex-tip{font-size:.85rem;background:var(--tipbg);border:1px solid var(--tipline);border-radius:12px;padding:10px 12px;color:var(--tiptext);line-height:1.45}
 .timer{
   font-size:4.2rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;
   margin:14px 0;letter-spacing:-2px;
@@ -170,6 +201,34 @@ const store={
 let data=store.load();
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const dISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+/* ============ TÉMA ============ */
+function applyTheme(){
+  const t=data.theme||'light';
+  document.documentElement.dataset.theme=t;
+  document.querySelector('meta[name=theme-color]').content=(t==='dark')?'#0d1220':'#f3f7fc';
+}
+function toggleTheme(){
+  data.theme=(data.theme==='dark')?'light':'dark';
+  store.save(data);applyTheme();render();
+}
+
+/* ============ STRAVA NA REGENERÁCIU ============
+   Protizápalová strava podporuje hojenie platničiek a svalov (Dg. M51.3). */
+const DIET=[
+ {id:'water',  emoji:'💧', label:'Voda aspoň 2 litre'},
+ {id:'protein',emoji:'🍗', label:'Bielkoviny v každom jedle'},
+ {id:'omega',  emoji:'🐟', label:'Omega-3: ryba, orechy, semienka'},
+ {id:'veg',    emoji:'🥦', label:'Zelenina / ovocie aspoň 3 porcie'},
+ {id:'nosugar',emoji:'🚫', label:'Bez sladkostí a alkoholu'},
+];
+function toggleDiet(id){
+  const t=todayISO();
+  data.diet=data.diet||{};
+  const d=data.diet[t]=data.diet[t]||{};
+  d[id]=!d[id];
+  store.save(data);render();
+}
 
 function streak(){
   let s=0,d=new Date();
@@ -308,6 +367,15 @@ function renderHome(){
     cal+=`<div class="d ${data.history[iso]?'done':''} ${iso===t?'today':''}">${d}</div>`;
   }
 
+  // strava dnes
+  const dietToday=(data.diet||{})[t]||{};
+  const dietCount=DIET.filter(x=>dietToday[x.id]).length;
+  const dietItems=DIET.map(x=>{
+    const on=!!dietToday[x.id];
+    return `<button class="diet-item ${on?'on':''}" onclick="toggleDiet('${x.id}')">
+      <span>${x.emoji}</span> ${x.label} <span class="chk">${on?'✓':''}</span></button>`;
+  }).join('');
+
   // graf bolesti (posledných 14 záznamov)
   const last14=entries.slice(-14);
   const bars=last14.map(([d,v])=>`<div class="bar" style="height:${Math.max(6,v.pain*10)}%" title="${d}: ${v.pain}/10"></div>`).join('');
@@ -316,7 +384,10 @@ function renderHome(){
   <div class="header">
     <div><h1>Rehab<span style="background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Chrbát</span></h1>
     <div class="muted">${now.toLocaleDateString('sk-SK',{weekday:'long',day:'numeric',month:'long'})}</div></div>
-    <div class="streak">🔥 ${streak()}</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="streak theme-btn" onclick="toggleTheme()" title="Prepnúť svetlý / tmavý režim">${(data.theme==='dark')?'☀️':'🌙'}</button>
+      <div class="streak">🔥 ${streak()}</div>
+    </div>
   </div>
 
   <div class="stats">
@@ -326,7 +397,14 @@ function renderHome(){
   </div>
 
   <button class="btn" onclick="startWorkout()">${doneToday?'✓ Dnes odcvičené — cvičiť znova':'▶ Začať dnešné cvičenie (~15 min)'}</button>
+
   <div class="card" style="margin-top:14px">
+    <h2>🥗 Strava na regeneráciu <span class="muted" style="font-weight:400">— dnes ${dietCount}/5</span></h2>
+    <div class="diet">${dietItems}</div>
+    <div class="muted">Platničky a svaly sa opravujú z toho, čo ješ — protizápalová strava a dostatok vody urýchľujú liečbu.</div>
+  </div>
+
+  <div class="card">
     <h2>Tento týždeň</h2>
     <div class="week">${week}</div>
   </div>
@@ -436,6 +514,7 @@ function renderInfo(){
   <p class="disclaimer">Navyše počas práce za PC: každú hodinu si sprav 5× zasunutie brady a pretiahni sa dozadu cez operadlo. Monitor do výšky očí, lakte na 90°.</p>`;
 }
 
+applyTheme();
 render();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>

@@ -1,4 +1,4 @@
-const CACHE = 'rehab-v2';
+const CACHE = 'rehab-v3';
 const ASSETS = ['.', 'index.html', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', e => {
