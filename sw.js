@@ -1,4 +1,4 @@
-const CACHE = 'rehab-v3';
+const CACHE = 'rehab-v4';
 const ASSETS = ['.', 'index.html', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', e => {
@@ -14,8 +14,11 @@ self.addEventListener('activate', e => {
   );
 });
 
-// network-first, fallback na cache (offline)
+// network-first, fallback na cache (offline) — len vlastné GET súbory,
+// Strava API a iné externé volania idú mimo cache
 self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request).then(res => {
       const copy = res.clone();

@@ -119,6 +119,13 @@ h2{font-size:1.05rem;font-weight:700;margin-bottom:10px}
 .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .vbtn{margin-top:12px;font-size:.95rem;padding:12px}
 .vlink{background:none;border:none;color:var(--brand);font-weight:700;font-size:.85rem;padding:8px 0;cursor:pointer;display:block}
+/* strava */
+.act{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.act:last-child{border:none}
+.act>span{font-size:1.3rem}
+.fld{width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--line);
+  background:var(--card2);color:var(--text);font-size:1rem;font-family:inherit}
+.cal .d.s{box-shadow:inset 0 -3px 0 -1px #fc4c02}
 /* done */
 .done-emoji{font-size:4.5rem;text-align:center;margin:30px 0 10px}
 input[type=range]{width:100%;accent-color:var(--accent);height:34px}
@@ -230,6 +237,70 @@ function toggleDiet(id){
   store.save(data);render();
 }
 
+/* ============ STRAVA API ============
+   Plne client-side OAuth: Client ID + Secret zadá užívateľ raz,
+   uložia sa len v localStorage tohto zariadenia (nie v repe). */
+const esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+function stravaConnected(){return !!(data.strava&&data.strava.rt)}
+function saveStravaCreds(){
+  const cid=document.getElementById('scid').value.trim();
+  const sec=document.getElementById('ssec').value.trim();
+  if(!cid||!sec){alert('Vyplň Client ID aj Client Secret.');return}
+  data.strava={cid,sec};store.save(data);
+  location.href='https://www.strava.com/oauth/authorize?client_id='+encodeURIComponent(cid)
+   +'&redirect_uri='+encodeURIComponent(location.origin+location.pathname)
+   +'&response_type=code&approval_prompt=auto&scope=read,activity:read_all,activity:write';
+}
+async function stravaToken(params){
+  const s=data.strava;
+  const r=await fetch('https://www.strava.com/oauth/token',{method:'POST',
+    body:new URLSearchParams({client_id:s.cid,client_secret:s.sec,...params})});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json();
+  s.at=j.access_token;s.rt=j.refresh_token;s.exp=j.expires_at;
+  if(j.athlete)s.athlete=((j.athlete.firstname||'')+' '+(j.athlete.lastname||'')).trim();
+  store.save(data);
+}
+async function stravaEnsure(){
+  const s=data.strava;
+  if(!s||!s.rt)throw new Error('neprepojené');
+  if(!s.exp||s.exp<Date.now()/1000+120)await stravaToken({grant_type:'refresh_token',refresh_token:s.rt});
+}
+async function loadActivities(force){
+  if(!stravaConnected())return;
+  const c=data.stravaCache;
+  if(!force&&c&&Date.now()-c.ts<30*60*1000)return; // šetri API limit
+  try{
+    await stravaEnsure();
+    const r=await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=20',
+      {headers:{Authorization:'Bearer '+data.strava.at}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const acts=await r.json();
+    data.stravaCache={ts:Date.now(),acts:acts.map(a=>({name:a.name,type:a.sport_type||a.type,
+      d:a.distance,t:a.moving_time,hr:a.average_heartrate,date:a.start_date_local}))};
+    store.save(data);
+    if(view==='home')render();
+  }catch(e){console.warn('Strava:',e)}
+}
+function disconnectStrava(){
+  if(confirm('Odpojiť Strava účet?')){
+    delete data.strava;delete data.stravaCache;store.save(data);render();
+  }
+}
+async function uploadWorkoutToStrava(min){
+  try{
+    await stravaEnsure();
+    const r=await fetch('https://www.strava.com/api/v3/activities',{method:'POST',
+      headers:{Authorization:'Bearer '+data.strava.at},
+      body:new URLSearchParams({
+        name:'RehabChrbát — rehabilitačné cvičenie',sport_type:'Workout',
+        start_date_local:new Date(Date.now()-min*60000).toISOString(),
+        elapsed_time:String(min*60),
+        description:'Denný program pre zdravý chrbát: mobilita + posilnenie + strečing · appka RehabChrbát'})});
+    return r.ok;
+  }catch(e){return false}
+}
+
 function streak(){
   let s=0,d=new Date();
   if(!data.history[dISO(d)]) d.setDate(d.getDate()-1); // dnes ešte necvičil → počítaj od včera
@@ -299,9 +370,16 @@ function finishWorkout(){
   W.durMin=Math.max(1,Math.round((Date.now()-W.startedAt)/60000));
   view='done';beep(660,.3);setTimeout(()=>beep(880,.4),250);render();
 }
-function saveWorkout(pain){
-  data.history[todayISO()]={pain,min:W.durMin};
+async function saveWorkout(pain){
+  const min=W.durMin;
+  const up=document.getElementById('sup');
+  data.history[todayISO()]={pain,min};
   store.save(data);W=null;view='home';render();
+  if(up&&up.checked){
+    const ok=await uploadWorkoutToStrava(min);
+    if(!ok)alert('Cvičenie je uložené, ale nahratie na Strava zlyhalo — skús neskôr ↻.');
+    else loadActivities(true);
+  }
 }
 
 /* video ukážky (lazy — načíta sa až po kliknutí) */
@@ -338,6 +416,7 @@ function render(){
   else if(view==='workout')renderWorkout();
   else if(view==='done')renderDone();
   else if(view==='info')renderInfo();
+  else if(view==='stravasetup')renderStravaSetup();
 }
 
 function renderHome(){
@@ -357,15 +436,35 @@ function renderHome(){
     week+=`<div class="wday">${names[i]}<div class="wdot ${done?'done':''} ${isT?'today':''}">${done?'✓':d.getDate()}</div></div>`;
   }
 
-  // kalendár aktuálneho mesiaca
+  // kalendár aktuálneho mesiaca (zelená = rehab, oranžový prúžok = Strava aktivita)
+  const stravaDays=new Set(((data.stravaCache||{}).acts||[]).map(a=>String(a.date).slice(0,10)));
   const y=now.getFullYear(),m=now.getMonth();
   const first=(new Date(y,m,1).getDay()+6)%7, days=new Date(y,m+1,0).getDate();
   let cal=names.map(n=>`<div class="h">${n}</div>`).join('');
   for(let i=0;i<first;i++)cal+='<div></div>';
   for(let d=1;d<=days;d++){
     const iso=dISO(new Date(y,m,d));
-    cal+=`<div class="d ${data.history[iso]?'done':''} ${iso===t?'today':''}">${d}</div>`;
+    cal+=`<div class="d ${data.history[iso]?'done':''} ${stravaDays.has(iso)?'s':''} ${iso===t?'today':''}">${d}</div>`;
   }
+
+  // Strava karta
+  const ICO={Run:'🏃',TrailRun:'🏃',VirtualRun:'🏃',Ride:'🚴',MountainBikeRide:'🚴',GravelRide:'🚴',VirtualRide:'🚴',EBikeRide:'🚴',Walk:'🚶',Hike:'🥾',Swim:'🏊',WeightTraining:'🏋️',Workout:'💪',Yoga:'🧘'};
+  const acts=((data.stravaCache||{}).acts||[]).slice(0,5);
+  const actRows=acts.map(a=>{
+    const dt=new Date(a.date);
+    return `<div class="act"><span>${ICO[a.type]||'⭐'}</span><div><b>${esc(a.name)}</b>
+      <div class="muted" style="font-size:.75rem">${dt.getDate()}.${dt.getMonth()+1}. · ${a.d>0?(a.d/1000).toFixed(1)+' km · ':''}${Math.round(a.t/60)} min${a.hr?' · ♥ '+Math.round(a.hr):''}</div></div></div>`;
+  }).join('');
+  const stravaCard=stravaConnected()
+   ?`<div class="card"><h2>🏃 Strava <span class="muted" style="font-weight:400">— ${esc(data.strava.athlete||'prepojené')}</span></h2>
+      ${actRows||'<div class="muted">Zatiaľ žiadne aktivity — daj ↻ Obnoviť.</div>'}
+      <div class="navbtns" style="margin-top:6px">
+        <button class="btn ghost" onclick="loadActivities(true)">↻ Obnoviť</button>
+        <button class="btn ghost" onclick="disconnectStrava()">Odpojiť</button>
+      </div></div>`
+   :`<div class="card"><h2>🏃 Strava</h2>
+      <div class="muted" style="margin-bottom:12px">Prepoj si Strava účet — behy a bicykel (aj s tepom z hrudného pásu) sa ukážu tu a v kalendári, a každá odcvičená rehabka sa nahrá na Stravu.</div>
+      <button class="btn" style="background:#fc4c02" onclick="view='stravasetup';render()">Prepojiť so Strava ›</button></div>`;
 
   // strava dnes
   const dietToday=(data.diet||{})[t]||{};
@@ -409,9 +508,12 @@ function renderHome(){
     <div class="week">${week}</div>
   </div>
 
+  ${stravaCard}
+
   <div class="card">
     <h2>${now.toLocaleDateString('sk-SK',{month:'long',year:'numeric'})}</h2>
     <div class="cal">${cal}</div>
+    ${stravaConnected()?`<div class="muted" style="margin-top:8px;font-size:.72rem"><span style="color:var(--accent)">●</span> rehab cvičenie&nbsp;&nbsp;<span style="color:#fc4c02">▬</span> Strava aktivita</div>`:''}
   </div>
 
   ${last14.length?`<div class="card"><h2>Vývoj bolesti (0–10)</h2><div class="chart">${bars}</div>
@@ -493,7 +595,35 @@ function renderDone(){
       <span>0 = žiadna</span><span style="text-align:right">10 = najhoršia</span>
     </div>
   </div>
+  ${stravaConnected()?`<label class="card" style="display:flex;gap:10px;align-items:center;cursor:pointer">
+    <input type="checkbox" id="sup" checked style="width:20px;height:20px;accent-color:#fc4c02;flex:none">
+    Nahrať cvičenie na Strava</label>`:''}
   <button class="btn" onclick="saveWorkout(+document.getElementById('pain').value)">Uložiť a dokončiť</button>`;
+}
+
+function renderStravaSetup(){
+  const s=data.strava||{};
+  app.innerHTML=`
+  <button class="back" onclick="view='home';render()">‹ Domov</button>
+  <h1 style="margin:8px 0 4px">Prepojenie so Strava</h1>
+  <p class="muted" style="margin-bottom:14px">Jednorazové nastavenie (~2 min). Kľúče sa uložia <b>len v tomto zariadení</b> — neposielajú sa nikam inam a nie sú v kóde na GitHube.</p>
+  <div class="card">
+    <b>1 · Vytvor si API appku</b>
+    <div class="muted" style="margin:8px 0 4px;line-height:1.7">
+      Otvor <a href="https://www.strava.com/settings/api" target="_blank" style="color:var(--brand);font-weight:700">strava.com/settings/api</a> a vyplň:<br>
+      · Application Name: <b>RehabChrbat</b><br>
+      · Category: <b>Training</b><br>
+      · Website: <b>https://4damko.github.io/rehab-chrbat/</b><br>
+      · Authorization Callback Domain: <b>4damko.github.io</b>
+    </div>
+  </div>
+  <div class="card">
+    <b>2 · Skopíruj sem kľúče</b>
+    <input class="fld" id="scid" inputmode="numeric" placeholder="Client ID" value="${esc(s.cid||'')}">
+    <input class="fld" id="ssec" placeholder="Client Secret" value="${esc(s.sec||'')}">
+    <button class="btn" style="background:#fc4c02;margin-top:12px" onclick="saveStravaCreds()">Uložiť a prepojiť ›</button>
+  </div>
+  <p class="disclaimer">Po kliknutí ťa to presmeruje na Stravu, kde povolíš prístup (čítanie aktivít + zápis cvičení), a vráti späť do appky. Prepojenie treba spraviť na každom zariadení zvlášť.</p>`;
 }
 
 function renderInfo(){
@@ -516,6 +646,19 @@ function renderInfo(){
 
 applyTheme();
 render();
+/* návrat z Strava OAuth (?code=...) + načítanie aktivít */
+(async()=>{
+  const q=new URLSearchParams(location.search);
+  if(q.get('code')&&data.strava){
+    try{
+      await stravaToken({grant_type:'authorization_code',code:q.get('code')});
+      view='home';
+    }catch(e){alert('Prepojenie so Strava zlyhalo ('+e.message+'). Skontroluj Client ID a Secret.')}
+    history.replaceState(null,'',location.pathname);
+    render();
+  }
+  loadActivities();
+})();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
